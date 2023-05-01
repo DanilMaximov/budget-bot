@@ -7,3 +7,7 @@ Gemfile.lock
 Gemfile.local
 .ruby-version
 *.gem
+
+.env
+.env.development
+.env.test

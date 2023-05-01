@@ -1,0 +1,11 @@
+#!/usr/bin/env ruby
+
+require "bundler/setup"
+
+require "dotenv/load"
+
+Dir["./src/**/*.rb"].each { |f| require f }
+
+load Gem.bin_path("pry", "pry")
+
+Pry.start
