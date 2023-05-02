@@ -6,5 +6,5 @@ rm -f .bundle/config
 
 bundle config set --local path '.bundle'
 bundle config set --local with 'development test'
-bundle check --path vendor > /dev/null 2>&1 || bundle install 
+bundle check --path .bundle > /dev/null 2>&1 || bundle install 
 

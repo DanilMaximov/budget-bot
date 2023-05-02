@@ -1,51 +1,73 @@
 # frozen_string_literal: true
 
-require_relative "clients/notion_client"
+require "active_function"
 
-require "telegram/bot"
-require "dotenv/load"
+require "./src/clients/notion"
+require "./src/clients/telegram"
 
-USERS = ENV.fetch("TG_USERS").split(",").map(&:to_i).freeze
+class BudgetBot < ActiveFunction::Base
+  before_action :set_message
 
-TOKEN  = ENV.fetch("TG_TOKEN")
-NOTION = NotionClient.build
+  PERMITTED_PARAMS = [
+    :message_id,
+    :text,
+    chat: [
+      :id,
+      :first_name,
+      :username,
+      :type
+    ]
+  ].freeze
 
-module BudgetBot
-  class Application
-    MSG_REGEXP = /^((\s?)(\w+|[А-Яа-я]))* \d+ \w+$/
+  MSG_REGEXP = /^((\s?)(\w+|[А-Яа-я]))* \d+ \w+$/
 
-    def self.start
-      new.start
+  def add_expense
+    authorize! @message[:chat]
+
+    expense_options = parse_expense(@message[:text])
+
+    notion_client.create_page(**expense_options)
+
+    if notion_client.request_succeed?
+      telegram_client.send_message(text: "Expense added", chat_id: @message[:chat][:id])
+
+      render status: 200
+    else
+      render json: { errors: notion_client.request_errors }, status: 500
     end
+  end
 
-    def initialize
-      @bot = Telegram::Bot::Client.new(TOKEN)
-    end
+  private
 
-    def start
-      @bot.listen { |message| puts handle_message(message) }
-    end
+  def parse_expense(text)
+    {
+      expense:  text[0..text.index(/\s\d/)].strip,
+      amount:   text[text.index(/\s\d/)..text.index(/\d\s/)].to_i,
+      category: text[(text.index(/\d\s/) + 1)..].strip.capitalize
+    }
+  end
 
-    private
+  def set_message
+    raise ArgumentError, "Wrong Telegram Event Type" unless params[:message][:text]
+    raise ArgumentError, "Wrong Telegram Message Format" unless params[:message][:text] in MSG_REGEXP
 
-    def handle_message(msg)
-      return "Wrong Event Type" unless msg in Telegram::Bot::Types::Message
-      return "Wrong Message Format" unless msg.text in MSG_REGEXP
-      return "Access Denied for #{msg.from.first_name} #{msg.from.last_name} #{msg.from.id}" unless USERS.include? msg.from.id
+    @message = params
+      .require(:message)
+      .permit(*PERMITTED_PARAMS)
+      .to_h
+  end
 
-      expense_options = parse_expense(msg.text)
+  def authorize!(msg)
+    authorized_users = ENV.fetch("AUTHORIZED_USERS").split(",")
 
-      NOTION.create_page **expense_options
+    raise "Unauthorized" unless authorized_users.include? msg[:id].to_s
+  end
 
-      "Success! #{expense_options} saved"
-    end
+  def notion_client
+    @notion_client ||= Clients::Notion.new
+  end
 
-    def parse_expense(message)
-      {
-        expense: message[0..message.index(/\s\d/)].strip,
-        amount: message[message.index(/\s\d/)..message.index(/\d\s/)].to_i,
-        category: message[(message.index(/\d\s/) + 1)..].strip.capitalize
-      }
-    end
+  def telegram_client
+    @telegram_client ||= Clients::Telegram.new
   end
 end

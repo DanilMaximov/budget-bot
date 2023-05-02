@@ -25,6 +25,9 @@ Style/FrozenStringLiteralComment:
 Style/HashConversion:
   Enabled: false
 
+Style/EndlessMethod:
+  EnforcedStyle: allow_always
+
 Naming/FileName:
   Exclude:
    - '**/*.md'
@@ -41,3 +44,6 @@ Layout/SpaceInsideHashLiteralBraces:
 
 Layout/SpaceInsideArrayLiteralBrackets:
   EnforcedStyle: space
+
+Layout/EmptyLineBetweenDefs:
+  Enabled: false
