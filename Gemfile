@@ -6,7 +6,7 @@ source "https://rubygems.org" do
   eval_gemfile "gemfiles/dev_server.gemfile"
 
   gem "interactor", "~> 3.1"
-  gem "activefunction", "~> 0.3"
+  gem "activefunction"
 
   group :test, :development do
     gem 'pry-byebug', platform: :mri

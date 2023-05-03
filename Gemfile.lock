@@ -4,7 +4,7 @@ GEM
 GEM
   remote: https://rubygems.org/
   specs:
-    activefunction (0.3.3)
+    activefunction (0.3.4)
       ruby-next-core (>= 0.14.0)
     ansi (1.5.0)
     ast (2.4.2)
@@ -84,9 +84,10 @@ GEM
 PLATFORMS
   arm64-darwin-21
   arm64-darwin-22
+  ruby
 
 DEPENDENCIES
-  activefunction (~> 0.3)!
+  activefunction!
   dotenv!
   interactor (~> 3.1)!
   listen (~> 3.8.0)!

@@ -1,4 +1,5 @@
 #!/bin/sh
+rbenv local 3.2.2
 
 cd "$(dirname $0)"/..
 

@@ -3,8 +3,8 @@
 SERVER_PORT=1620
 WEBHOOK_UUID=$(uuidgen)
 PARENT_PATH=$( cd "$(dirname $0)" || exit ; pwd -P )
-ENV_PATH=$( echo $PARENT_PATH/../.env.development )
-TELEGRAM_BOT_TOKEN=$(grep TELEGRAM_BOT_TOKEN ${ENV_PATH} | cut -d '=' -f2)
+ENV_PATH=$( echo $PARENT_PATH/../.env)
+TELEGRAM_BOT_TOKEN=$(grep TELEGRAM_TOKEN ${ENV_PATH} | cut -d '=' -f2)
 
 ! nc -z localhost 4040 && ngrok http ${SERVER_PORT} > /dev/null &
 while $(! nc -z localhost 4040); do sleep 1; done
