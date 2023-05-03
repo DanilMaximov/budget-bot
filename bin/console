@@ -1,0 +1,27 @@
+#!/usr/bin/env ruby
+
+ENV["BUNDLE_GEMFILE"] ||= File.expand_path("../Gemfile", __dir__)
+require "bundler/setup" if File.exist?(ENV["BUNDLE_GEMFILE"])
+
+require "zeitwerk"
+require "listen"
+require "json"
+require "pry-byebug"
+require "dotenv"
+
+loader = Zeitwerk::Loader.new
+loader.push_dir("./src")
+
+loader.push_dir("./src/interactors")
+loader.push_dir("./src")
+loader.enable_reloading
+loader.setup
+
+listener = Listen.to("./src") { loader.reload }
+listener.start
+
+Dotenv.load(".env.development")
+
+binding.pry
+
+exit

@@ -1,5 +1,6 @@
 /.bundle/
 /vendor/
+/package/
 
 gemfiles/*.lock
 
@@ -7,3 +8,16 @@ Gemfile.lock
 Gemfile.local
 .ruby-version
 *.gem
+
+.env
+.env.development
+.env.test
+
+# AWS CDK
+*.js
+!jest.config.js
+*.d.ts
+node_modules
+
+.cdk.staging
+cdk.out

@@ -1,8 +1,23 @@
 #!/bin/sh
+rbenv local 2.7.8
 
 cd "$(dirname $0)"/..
-rm -rf vendor
-bundle check --path vendor/bundle > /dev/null 2>&1
+
+rm -f package/package.zip
+rm -rf package/src/*
+
+mkdir -p package/src
+ruby-next nextify
+cp -r -n ./src/ ./package/src/
+
+rm -f .bundle/config
 bundle config set --local path 'vendor/bundle'
 bundle config set --local without 'development test'
-bundle install
+bundle check --path vendor/bundle > /dev/null 2>&1 || bundle install
+
+rm -rf package/vendor/bundle
+mv vendor/bundle package/vendor
+cp handler.rb package/
+
+(cd package && zip -r package.zip src handler.rb vendor/)
+

@@ -1,0 +1,7 @@
+nextify: |
+  ./src
+  --output=package/src
+  --min-version=2.7
+  --single-version
+  --edge
+  --transpile-mode=ast

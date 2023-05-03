@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+
+SERVER_PORT=1620
+WEBHOOK_UUID=$(uuidgen)
+PARENT_PATH=$( cd "$(dirname $0)" || exit ; pwd -P )
+ENV_PATH=$( echo $PARENT_PATH/../.env)
+TELEGRAM_BOT_TOKEN=$(grep TELEGRAM_TOKEN ${ENV_PATH} | cut -d '=' -f2)
+
+! nc -z localhost 4040 && ngrok http ${SERVER_PORT} > /dev/null &
+while $(! nc -z localhost 4040); do sleep 1; done
+
+ngrok_remote_url=$(curl --silent "http://localhost:4040/api/tunnels" \
+  | jq ".tunnels[0].public_url" \
+  | tr -d '"' \
+  | sed 's/http:\/\//https:\/\//g')
+
+test -z ngrok_remote_url && echo "Invalid ngrok url ${ngrok_remote_url}." && exit 1
+echo "setWebhook:" $(curl --silent -F url=${ngrok_remote_url}/ https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/setWebhook)
+echo "remote url: "${ngrok_remote_url}
+
+export $(grep -v '^#' ${ENV_PATH} | xargs -0) && bundle exec rackup -p ${SERVER_PORT}
