@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require "logger"
-require "./src/budget_bot"
+require "./src/functions/expenses_function"
 
 $logger = Logger.new($stdout)
 
@@ -13,7 +13,7 @@ class Application
 
     log "Telegram Event Received: #{msg}"
 
-    BudgetBot.process(:add_expense, message: msg.fetch(:message))
+    ExpensesFunction.process(:add, message: msg.fetch(:message))
   rescue => e
     log "Error: #{e.full_message}}", level: :error
   end
