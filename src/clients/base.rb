@@ -3,7 +3,7 @@
 require "./src/interactors/http_fetcher"
 
 module Clients
-  class BaseClient
+  class Base
     EMPTY_HASH = {}.freeze
 
     attr_reader :http_client

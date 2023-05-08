@@ -35,7 +35,7 @@ export default class Functions extends Construct {
 
     const BudgetBotProps = {
       code: Code.fromAsset( `../package/package.zip`),
-      handler: 'handler.handler',
+      handler: 'handler.Application.process',
       runtime: Runtime.RUBY_2_7,
       timeout: Duration.seconds(60),
       logRetention: RetentionDays.ONE_WEEK,

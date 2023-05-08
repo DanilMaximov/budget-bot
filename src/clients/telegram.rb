@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require_relative "base_client"
+require_relative "base"
 
 module Clients
-  class Telegram < BaseClient
+  class Telegram < Base
     BASE_URL = "https://api.telegram.org/bot"
 
     def send_message(chat_id:, text:)

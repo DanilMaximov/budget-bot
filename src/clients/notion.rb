@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
-require_relative "base_client"
+require_relative "base"
 require "date"
 
 module Clients
-  class Notion < BaseClient
+  class Notion < Base
     BASE_URL = "https://api.notion.com/v1"
 
     def create_page(expense:, amount:, category:)
@@ -12,7 +12,6 @@ module Clients
 
       page[:parent][:database_id] = ENV.fetch("NOTION_DATABASE_ID")
 
-      # TODO: Introduce Parser OStruct
       page[:properties].tap do |properties|
         properties[:Expense] = { title: [ { text: { content: expense } } ] }
         properties[:Amount]  = { number: amount }
