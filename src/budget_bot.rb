@@ -34,7 +34,7 @@ class BudgetBot < ActiveFunction::Base
 
       render status: 200
     else
-      render json: { errors: notion_client.request_errors }, status: 500
+      render json: { errors: notion_client.request_errors }, status: 200 # status OK to satifsy tg api req/res loop
     end
   end
 
