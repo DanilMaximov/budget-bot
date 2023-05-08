@@ -1,13 +1,24 @@
 # frozen_string_literal: true
 
+require "logger"
 require "./src/budget_bot"
 
-def handler(event:, context:)
-  raise "Invalid Webhook Event" unless event["headers"]["X-Telegram-Bot-Api-Secret-Token"] == ENV.fetch("TELEGRAM_WEBHOOK_TOKEN")
+$logger = Logger.new($stdout)
 
-  msg = JSON.parse(event["body"], symbolize_names: true)
+class Application
+  def self.process(event:, context:)
+    raise "Invalid Webhook Event" unless event["headers"]["X-Telegram-Bot-Api-Secret-Token"] == ENV.fetch("TELEGRAM_WEBHOOK_TOKEN")
 
-  p "<#{DateTime.now}> Request Received: #{msg}" # TODO: Introduce Logger
+    msg = JSON.parse(event["body"], symbolize_names: true)
 
-  BudgetBot.process(:add_expense, message: msg[:message])
+    log "Telegram Event Received: #{msg}"
+
+    BudgetBot.process(:add_expense, message: msg.fetch(:message))
+  rescue => e
+    log "Error: #{e.full_message}}", level: :error
+  end
+
+  def self.log(message, level: :info)
+    $logger.send(level, message)
+  end
 end

@@ -7,6 +7,7 @@ require "./src/clients/telegram"
 
 class BudgetBot < ActiveFunction::Base
   before_action :set_message
+  after_action :log_response
 
   PERMITTED_PARAMS = [
     :message_id,
@@ -55,6 +56,10 @@ class BudgetBot < ActiveFunction::Base
       .require(:message)
       .permit(*PERMITTED_PARAMS)
       .to_h
+  end
+
+  def log_response
+    Application.log "Response: #{@response.to_h}"
   end
 
   def authorize!(msg)
