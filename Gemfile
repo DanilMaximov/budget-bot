@@ -7,6 +7,7 @@ source "https://rubygems.org" do
 
   gem "interactor", "~> 3.1"
   gem "activefunction"
+  gem 'aws-sdk-dynamodb'
 
   group :test, :development do
     gem 'pry-byebug', platform: :mri
