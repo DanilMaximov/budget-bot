@@ -27,9 +27,13 @@ class Base < ActiveFunction::Base
   private
 
   def authorize!(msg)
-    authorized_users = ENV.fetch("AUTHORIZED_USERS").split(",")
+    return if current_user.active?
 
     raise "Unauthorized" unless authorized_users.include? msg[:id].to_s
+  end
+
+  def current_user
+    @current_user ||= User.find(@message[:chat][:id])
   end
 
   def set_message

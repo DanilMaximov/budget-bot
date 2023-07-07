@@ -1,11 +1,13 @@
 import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
-import { Functions, ApiGateway } from './resources';
+import { Functions, ApiGateway, Database } from './resources';
 
 
 export class BudgetBotStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
+
+    const db = new Database(this, 'Database');  
 
     const botFunctions = new Functions(this, 'BotFunctions', {
       notionToken: process.env.NOTION_TOKEN as string,

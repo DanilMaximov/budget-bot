@@ -47,3 +47,9 @@ Layout/SpaceInsideArrayLiteralBrackets:
 
 Layout/EmptyLineBetweenDefs:
   Enabled: false
+
+Style/EndlessMethod:
+  EnforcedStyle: allow_always
+
+Style/PercentLiteralDelimiters:
+  PreferredDelimiters: "()"
