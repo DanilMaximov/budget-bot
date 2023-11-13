@@ -1,8 +1,10 @@
 #!/usr/bin/env node
 import 'source-map-support/register';
 import * as cdk from 'aws-cdk-lib';
+import * as ssm from 'aws-cdk-lib/aws-ssm';
 import * as dotenv from 'dotenv';
 import { BudgetBotStack } from '../lib/budget-bot-stack';
+import { Construct } from 'constructs';
 
 dotenv.config({ path: __dirname + '/../../.env' })
 

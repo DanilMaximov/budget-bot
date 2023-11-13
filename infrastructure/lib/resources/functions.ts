@@ -1,9 +1,7 @@
 import { Duration, StackProps } from "aws-cdk-lib";
-import { Code, Runtime, Function, IFunction } from "aws-cdk-lib/aws-lambda";
+import { Code, Runtime, Function } from "aws-cdk-lib/aws-lambda";
 import { Construct } from "constructs";
-import { Charset, LogLevel, NodejsFunction, OutputFormat, SourceMapMode } from "aws-cdk-lib/aws-lambda-nodejs";
 import { RetentionDays } from "aws-cdk-lib/aws-logs";
-import { join } from "path";
 import * as ssm from 'aws-cdk-lib/aws-ssm';
 
 

@@ -14,7 +14,7 @@ AllCops:
     - 'vendor/**/*'
   DisplayCopNames: true
   SuggestExtensions: false
-  TargetRubyVersion: 3.1.3
+  TargetRubyVersion: 3.2.2
 
 Standard/BlockSingleLineBraces:
   Enabled: false

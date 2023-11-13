@@ -14,6 +14,25 @@ rescue LoadError
   task(:test) {}
 end
 
+namespace :test do
+  desc 'Run all tests'
+  Rake::TestTask.new(:all) do |t|
+    t.libs << 'test'
+    t.test_files = FileList['src/**/test/*_test.rb']
+    t.verbose = true
+  end
+
+  desc 'Run tests for specific service'
+  task :run, [:service] do |_task, args|
+    service = args[:service]
+
+    test_command = "ruby -Ilib:test #{__dir__}/src/#{service}/test/*_test.rb"
+
+    system(test_command)
+  end
+end
+
+
 begin
   require "rubocop/rake_task"
 
