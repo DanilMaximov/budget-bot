@@ -47,3 +47,6 @@ Layout/SpaceInsideArrayLiteralBrackets:
 
 Layout/EmptyLineBetweenDefs:
   Enabled: false
+
+Lint/ConstantDefinitionInBlock: 
+  Enabled: false

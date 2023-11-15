@@ -42,9 +42,14 @@ class Authorizer
 
   private
 
-  def webhook_token    = TELEGRAM_WEBHOOK_TOKEN
-  def authorized_users = AUTHORIZED_USERS
-  def logger           = LOGGER
+  def authentication = @_authentication ||= Authentication[@request] # delegates request.body, request.headers
+  def authenticate!
+    authentication.execute
+
+    raise AuthenticationError, authentication.errors unless authentication.success
+
+    @request.type = authentication.request_type
+  end
 
   def authorize!
     raise InvalidWebhookEventError unless @event["headers"]["X-Telegram-Bot-Api-Secret-Token"] == webhook_token

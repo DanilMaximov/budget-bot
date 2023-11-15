@@ -5,7 +5,7 @@ source "https://rubygems.org" do
   eval_gemfile "gemfiles/minitest.gemfile"
   eval_gemfile "gemfiles/dev_server.gemfile"
 
-  gem "interactor", "~> 3.1"
+  # gem "interactor", "~> 3.1"
   gem "activefunction"
 
   group :test, :development do
