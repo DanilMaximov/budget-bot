@@ -1,107 +1,104 @@
 # frozen_string_literal: true
 
-# authorizer.rb
+Event = Data.define(:action, :account_id, :payload)
 
-require "json"
-require "logger"
+class WebHookRequestHandler
+  ResponseReady     = Class.new(StandardError)
+  IgnoreUpdateEvent = Class.new(ResponseReady) do
+    MESSAGE_TEMPLATE = "Ignoring event id %<update_id> from %<chat_id> with %<name>"
 
-LOGGER                 = Logger.new($stdout)
-TELEGRAM_WEBHOOK_TOKEN = ENV.fetch("TELEGRAM_WEBHOOK_TOKEN")
-AUTHORIZED_USERS       = ENV.fetch("AUTHORIZED_USERS").split(",")
+    def initialize(event)
+      raise ArgumentError, "Invalid event: #{event}" unless event.is_a?(UpdateEvent)
 
-class Authorizer
-  Error = Class.new(StandardError)
-
-  InvalidWebhookEventError = Class.new(Error) do
-    def full_message = "Invalid Webhook Event"
+      super(MESSAGE_TEMPLATE % { update_id: event.id, chat_id: event.chat.id, name: self.class.name })
+    end
   end
 
-  UnauthorizedError = Class.new(Error) do
-    def full_message = "Unauthorized"
-  end
+  InvalidUpdateSequenceNumber = Class.new(IgnoreUpdateEvent)
+  ClientBusy                  = Class.new(IgnoreUpdateEvent)
 
-  InvalidTelegramEventError = Class.new(Error) do
-    def full_message = "Invalid Telegram Event"
-  end
+  Event = Data.define(:action, :account_id, :payload)
 
-  def self.handler(event:, context:)
-    new(event, context).call
-  end
+  class << self
+    def handle(event:, context:)
+      parsed_body = JSON.parse(event["body"], symbolize_names: true)
+      update      = TelegramUpdate.build_from_webhook_request(request_payload)
 
-  def initialize(event, context)
-    @event   = event
-    @context = context
-  end
+      authenticate!(update)
 
-  def call
-    authorize!
-    allow_access
-  rescue => e
-    deny_access(e.full_message)
-  end
+      enqueue_default_update_event(update)
+    rescue ResponseReady => e
+      logger.info("Response ready: #{e.message}")
+    rescue => e
+      logger.error(e.full_message)
+    ensure
+      response
+    end
 
-  private
+    private
 
-  def authentication = @_authentication ||= Authentication[@request] # delegates request.body, request.headers
-  def authenticate!
-    authentication.execute
+    def authenticate!(update)
+      raise InvalidUpdateChatType unless update.chat.type == "private"
 
-    raise AuthenticationError, authentication.errors unless authentication.success
+      integration = Account::Integeration.find_by(internal_id: update.chat.id)
 
-    @request.type = authentication.request_type
-  end
+      setup_new_user(update) if integration.nil?
 
-  def authorize!
-    raise InvalidWebhookEventError unless @event["headers"]["X-Telegram-Bot-Api-Secret-Token"] == webhook_token
+      raise InvalidUpdateSequenceNumber, update if update.id <= integration.last_event_id
+      raise ClientBusy, integration if integration.busy?
 
-    msg = JSON.parse(@event["body"], symbolize_names: true)
+      user.update(last_event_id: update.id, status: :busy)
+    end
 
-    raise InvalidTelegramEventError unless msg in { message: { chat: {id: Integer} } }
+    def setup_new_user(update)
+      Account::Integeration.create(
+        internal_id: update.chat.id,
+        name: update.chat.username,
+        last_event_id: update.id,
+        status: :busy
+      )
 
-    raise UnauthorizedError unless authorized_users.include?(msg[:message][:chat][:id].to_s)
-  end
+      integration = Account::Integeration.find_by!(internal_id: update.chat.id)
 
-  def allow_access
-    log_info("Access allowed")
+      enqueu_new_user_setup(update, integration)
+    end
 
-    {
-      principalId:    "user",
-      policyDocument: {
-        Version:   "2012-10-17",
-        Statement: [
-          {
-            Action:   "execute-api:Invoke",
-            Effect:   "Allow",
-            Resource: @event["methodArn"]
-          }
-        ]
+    def enqueu_new_user_setup(update, integration)
+      enqueue Event[:new_user, integration.id, update.to_h], queue_name: :telegram_response_handler
+
+      raise ResponseReady
+    end
+
+    def enqueue_default_update_event(update)
+      enqueue Event[:default, integration.id, update.to_h]
+    end
+
+    def enqueue(event, queue_name: :telegram_event_handler)
+      EventBridgeClient.throw_event(queue_name, data: event.to_h.to_json)
+    end
+
+    def response
+      if update.type == :message
+        delete_user_input_response(update.chat.id, update.message.message_id)
+      else
+        default_response
+      end
+    end
+
+    def delete_user_input_response(chat_id, message_id)
+      {
+        statusCode: 200,
+        headers: { "Content-Type": "application/json" },
+        body: { method: "deleteMessage", chat_id: chat_id, message_id: message_id }.to_jsnon
       }
-    }
-  end
+    end
 
-  def deny_access(error_message)
-    log_error("Authorization Error: #{error_message}")
-
-    {
-      principalId:    "user",
-      policyDocument: {
-        Version:   "2012-10-17",
-        Statement: [
-          {
-            Action:   "execute-api:Invoke",
-            Effect:   "Deny",
-            Resource: @event["methodArn"]
-          }
-        ]
+    def default_response
+      {
+        statusCode: 200,
+        body: "OK",
+        headers: { "Content-Type": "application/text" }
       }
-    }
-  end
-
-  def log_info(message)
-    logger.info(message)
-  end
-  
-  def log_error(message)
-    logger.error(message)
+    end
   end
 end
