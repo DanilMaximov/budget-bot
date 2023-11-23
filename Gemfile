@@ -13,5 +13,6 @@ source "https://rubygems.org" do
     gem 'dotenv'
     gem 'pry'
     gem 'ruby-next'
+    gem 'aws-sdk', '~> 3', require: true
   end
 end

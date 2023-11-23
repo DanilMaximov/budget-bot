@@ -1,0 +1,26 @@
+{
+  "body": "",
+  "resource": "/{proxy+}",
+  "path": "/path/to/your/endpoint",
+  "httpMethod": "POST",
+  "queryStringParameters": {
+    "key": "value"
+  },
+  "requestContext": {
+  },
+  "headers": {
+    "Accept": "application/json",
+    "Content-Type": "application/json"
+  },
+  "multiValueHeaders": {
+    "Accept": ["application/json"],
+    "Content-Type": ["application/json"]
+  },
+  "pathParameters": {
+    "proxy": "/path/to/your/endpoint"
+  },
+  "stageVariables": {
+    "key": "value"
+  },
+  "isBase64Encoded": false
+}

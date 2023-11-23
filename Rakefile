@@ -22,13 +22,10 @@ namespace :test do
     t.verbose = true
   end
 
-  desc 'Run tests for specific service'
-  task :run, [:service] do |_task, args|
-    service = args[:service]
-
-    test_command = "ruby -Ilib:test #{__dir__}/src/#{service}/test/*_test.rb"
-
-    system(test_command)
+  Rake::TestTask.new(:authorizer) do |t, args |
+    t.libs << 'test'
+    t.test_files = FileList["#{__dir__}/src/authorizer/test/**/*_test.rb"]
+    t.verbose = true
   end
 end
 

@@ -1,69 +1,167 @@
 # frozen_string_literal: true
 
 require "test_helper"
+require_relative "support/requests_helper"
+
 require_relative "../handler"
+require_relative "../models/account"
 
-class HandlerTest < Minitest::Test
-  def setup
-    setup_common_stubs
-    setup_logger_mock
+describe WebHookRequestHandler do
+  let(:described_class) { WebHookRequestHandler }
+
+  let(:request) { webhook_request.text }
+  let(:webhook_event_body) { request.to_json }
+  let(:webhook_update) { TelegramUpdate.build_from_webhook_request(request) }
+
+  let(:aws_event) { aws_request.event.merge("body" => webhook_event_body) }
+
+  let(:account_session) { Account::Session.new(id: 1, internal_id: 1, account_id: 1, last_event_id: 1, status: :free) }
+  let(:ddb_response) { { items: [ account_session.to_h.transform_keys(&:to_s) ] } }
+
+  before do
+    dynamodb = Aws::DynamoDB::Client.new(stub_responses: true)
+    dynamodb.stub_responses(:execute_statement, ddb_response)
+
+    time = Time.now
+    Time.stubs(:now).returns(time)
+
+    ::DDB = dynamodb # stub :////
   end
 
-  def setup_common_stubs
-    @event   = {
-      "body"    => JSON.generate({ message: { chat: { id: 123 } } }),
-      "headers" => {
-        "X-Telegram-Bot-Api-Secret-Token" => "token-abc"
-      }
-    }
-    @context = {}
+  describe "::handle" do
+    let(:event) { described_class::Event.new(action: :default, payload: webhook_update.to_h) }
 
-    Authorizer.any_instance.stubs(:authorized_users).returns([ "123", "456" ])
-    Authorizer.any_instance.stubs(:webhook_token).returns("token-abc")
-  end
+    describe "EventBridge event enqueue" do
+      let(:expected_event) do
+        {
+          detail:         event.to_h.to_json,
+          detail_type:    :default,
+          event_bus_name: :webhook_event_handler,
+          time:           Time.now
+        }
+      end
 
-  def setup_logger_mock
-    @logger_mock = mock("Logger")
-    Authorizer.any_instance.stubs(:logger).returns(@logger_mock)
-  end
+      before do
+        described_class.send(:event_bridge).expects(:put_events).with(entries: [ expected_event ])
+      end
 
-  def test_handler_with_authorized_user
-    @logger_mock.stubs(:info)
+      describe "when session exists" do
+        it "handles a valid update event" do
+          described_class.handle(event: aws_event, context: {})
+        end
+      end
 
-    response = Authorizer.handler(event: @event, context: @context)
+      describe "when session does not exist" do
+        let(:event) { described_class::Event.new(action: :new_session, payload: webhook_update.to_h) }
+        let(:expected_event) do
+          {
+            detail:         event.to_h.to_json,
+            detail_type:    :new_session,
+            event_bus_name: :webhook_event_handler,
+            time:           Time.now
+          }
+        end
 
-    assert_equal "user", response[:principalId]
-    assert_equal "Allow", response[:policyDocument][:Statement][0][:Effect]
-    assert_equal @event["methodArn"], response[:policyDocument][:Statement][0][:Resource]
-  end
+        let(:ddb_response) { { items: [] } }
 
-  def test_handler_with_unauthorized_user
-    @logger_mock.stubs(:error)
+        it "handles a valid update event" do
+          described_class.handle(event: aws_event, context: {})
+        end
+      end
+    end
 
-    Authorizer.any_instance.stubs(:authorized_users).returns([ "456" ])
+    describe "Lambda response" do
+      let(:delete_response) do
+        {
+          statusCode: 200,
+          headers:    { "Content-Type": "application/json" },
+          body:       {
+            method:     "deleteMessage",
+            chat_id:    webhook_update.chat.id,
+            message_id: webhook_update.message.message_id
+          }.to_json
+        }
+      end
 
-    response = Authorizer.handler(event: @event, context: @context)
+      let(:default_response) do
+        {
+          statusCode: 200,
+          body:       "OK",
+          headers:    { "Content-Type": "application/text" }
+        }
+      end
 
-    assert_equal "Deny", response[:policyDocument][:Statement][0][:Effect]
-  end
+      describe "when webhook update is a message from user" do
+        let(:request) { webhook_request.command }
 
-  def test_wrong_webhook_url
-    @logger_mock.stubs(:error)
+        it "return delete message response" do
+          described_class.handle(event: aws_event, context: {}).tap do |response|
+            assert_equal delete_response, response
+          end
+        end
 
-    Authorizer.any_instance.stubs(:webhook_token).returns("wrong-token")
+        describe "when unexpected error occurs" do
+          before do
+            described_class.any_instance.stubs(:enqueue).raises(StandardError)
+          end
 
-    response = Authorizer.handler(event: @event, context: @context)
+          it "returns delete message response" do
+            described_class.handle(event: aws_event, context: {}).tap do |response|
+              assert_equal delete_response, response
+            end
+          end
+        end
+      end
 
-    assert_equal "Deny", response[:policyDocument][:Statement][0][:Effect]
-  end
+      describe "when webhook update is a callback query" do
+        let(:request) { webhook_request.callback_query }
 
-  def test_wrong_telegram_event
-    @logger_mock.stubs(:error)
+        it "return default response" do
+          described_class.handle(event: aws_event, context: {}).tap do |response|
+            assert_equal default_response, response
+          end
+        end
+      end
+    end
 
-    @event["body"] = { message: { chat: { no_id: nil } } }.to_json
+    describe "Authentication" do
+      describe "when session is busy" do
+        let(:account_session) { Account::Session.new(id: 1, internal_id: 1, account_id: 1, last_event_id: 1, status: :busy) }
 
-    response = Authorizer.handler(event: @event, context: @context)
+        before do
+          described_class.send(:event_bridge).expects(:put_events).never
+        end
 
-    assert_equal "Deny", response[:policyDocument][:Statement][0][:Effect]
+        it "doesn't enqueue event" do
+          described_class.handle(event: aws_event, context: {})
+        end
+      end
+
+      describe "when already processed event appeared" do
+        let(:account_session) { Account::Session.new(id: 1, internal_id: 1, account_id: 1, last_event_id: webhook_update.update_id, status: :free) }
+
+        before do
+          described_class.send(:event_bridge).expects(:put_events).never
+        end
+
+        it "doesn't enqueue event" do
+          described_class.handle(event: aws_event, context: {})
+        end
+      end
+
+      describe "when session doesnt exist" do
+        let(:ddb_response) { { items: [] } }
+
+        before do
+          Account::Session.expects(:create).once
+        end
+
+        it " a new session record" do
+          described_class.handle(event: aws_event, context: {})
+
+          # subject
+        end
+      end
+    end
   end
 end
