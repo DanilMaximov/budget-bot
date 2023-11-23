@@ -1,5 +1,7 @@
-require 'test_helper'
-require_relative '../../models/model'
+# frozen_string_literal: true
+
+require "test_helper"
+require_relative "../../models/model"
 
 describe Model do
   describe "::define" do
@@ -18,31 +20,30 @@ describe Model do
     end
 
     describe "::build" do
-      
       it "should build a model with the given attributes" do
         model.build(id: 1, name: "test").tap do |model|
           assert_equal 1, model.id
           assert_equal "test", model.name
         end
       end
-      
+
       it "should build a model with the given sub model" do
-        model_with_sub_model.build(id: 1, name: "test", test: { type: "foo"}).tap do |model|
+        model_with_sub_model.build(id: 1, name: "test", test: { type: "foo" }).tap do |model|
           assert_equal 1, model.id
           assert_equal "test", model.name
           assert_equal "foo", model.test.type
         end
       end
-      
+
       it "should raise an error if missing defined attr" do
-        assert_raises(Model::Mixin::BuildError) do
+        assert_raises(Model::BuildError) do
           model.build(id: 1)
         end
       end
-      
+
       it "should raise an error if the given sub model is invalid" do
-        assert_raises(Model::Mixin::BuildError) do
-          model_with_sub_model.build(id: 1, name: "test", test: { unknown: "foo"})
+        assert_raises(Model::BuildError) do
+          model_with_sub_model.build(id: 1, name: "test", test: { unknown: "foo" })
         end
       end
     end
@@ -55,7 +56,7 @@ describe Model do
       end
 
       it "should return a hash with the model attributes and sub model" do
-        model_with_sub_model.build(id: 1, name: "test", test: { type: "foo"}).tap do |model|
+        model_with_sub_model.build(id: 1, name: "test", test: { type: "foo" }).tap do |model|
           assert_equal({ id: 1, name: "test", test: { type: "foo" } }, model.to_h)
         end
       end

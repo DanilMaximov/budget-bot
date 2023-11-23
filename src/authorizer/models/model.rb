@@ -1,14 +1,14 @@
 # frozen_string_literal: true
 
 class Model < Data
-  module Mixin
-    BuildError = Class.new(StandardError)
+  BuildError = Class.new(StandardError)
 
+  module Mixin
     def self.included(base)
       base.extend ClassMethods
       base.include InstanceMethods
     end
-    
+
     module InstanceMethods
       def to_h
         members.each_with_object({}) do |member, hash|
@@ -32,10 +32,10 @@ class Model < Data
         validate!(sliced_options.keys)
 
         sliced_options.each_with_object({}) do |(key, value), hash|
-          hash[key] = if sub_model = sub_models[key] 
+          hash[key] = if sub_model = sub_models[key]
             sub_model.build(**value)
           else
-            value 
+            value
           end
 
           hash
@@ -44,7 +44,7 @@ class Model < Data
 
       def validate!(options)
         expected_keys = Set[*members]
-        received = Set[*options]
+        received      = Set[*options]
 
         raise BuildError, "Invalid keys received: #{(received - expected_keys).to_a.join(", ")}" unless received == expected_keys
       end
