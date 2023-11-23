@@ -13,6 +13,8 @@ source "https://rubygems.org" do
     gem 'dotenv'
     gem 'pry'
     gem 'ruby-next'
-    gem 'aws-sdk', '~> 3', require: true
+
+    gem 'aws-sdk-dynamodb'
+    gem 'aws-sdk-eventbridge' 
   end
 end
