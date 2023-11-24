@@ -1,0 +1,96 @@
+{
+  "text": {
+    "update_id": 619216598,
+    "message": {
+      "message_id": 8,
+      "from": {
+        "id": 123456789,
+        "is_bot": false,
+        "first_name": "user1",
+        "username": "user1",
+        "language_code": "en",
+        "is_premium": true
+      },
+      "chat": {
+        "id": 123456789,
+        "first_name": "user1",
+        "username": "user1",
+        "type": "private"
+      },
+      "date": 1700392390,
+      "text": "/start",
+      "entities": [
+        {
+          "offset": 0,
+          "length": 6,
+          "type": "bot_command"
+        }
+      ]
+    }
+  },
+  "command": {
+    "update_id": 619216600,
+    "message": {
+      "message_id": 26,
+      "from": {
+        "id": 123456789,
+        "is_bot": false,
+        "first_name": "user1",
+        "username": "user1",
+        "language_code": "ru",
+        "is_premium": true
+      },
+      "chat": {
+        "id": 123456789,
+        "first_name": "user1",
+        "username": "user1",
+        "type": "private"
+      },
+      "date": 1700394192,
+      "text": "text"
+    }
+  },
+  "callback_query": {
+    "update_id": 619216601,
+    "callback_query": {
+      "id": "617811404861714989",
+      "from": {
+        "id": 123456789,
+        "is_bot": false,
+        "first_name": "user1",
+        "username": "user1",
+        "language_code": "ru",
+        "is_premium": true
+      },
+      "message": {
+        "message_id": 25,
+        "from": {
+          "id": 987654321,
+          "is_bot": true,
+          "first_name": "TestBot",
+          "username": "testbot"
+        },
+        "chat": {
+          "id": 123456789,
+          "first_name": "user1",
+          "username": "user1",
+          "type": "private"
+        },
+        "date": 1700393950,
+        "text": "Start",
+        "reply_markup": {
+          "inline_keyboard": [
+            [
+              {
+                "text": "button1",
+                "callback_data": "{\"id\":1,\"type\":\"type\"}"
+              }
+            ]
+          ]
+        }
+      },
+      "chat_instance": "-1625881613418581048",
+      "data": "{\"id\":1,\"type\":\"type\"}"
+    }
+  }
+}

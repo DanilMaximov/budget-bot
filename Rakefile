@@ -14,6 +14,24 @@ rescue LoadError
   task(:test) {}
 end
 
+namespace :test do
+  Rake::TestTask.new(:all) do |t|
+    t.libs << "test"
+    t.test_files = FileList["#{__dir__}/src/**/test/**/*_test.rb"]
+  end
+
+  Rake::TestTask.new(:gatekeeper) do |t|
+    t.libs << "test"
+    t.test_files = FileList["#{__dir__}/src/gatekeeper/test/**/*_test.rb"]
+    t.verbose    = true
+  end
+
+  Rake::TestTask.new(:shared) do |t|
+    t.libs << "test"
+    t.test_files = FileList["#{__dir__}/src/shared/test/**/*_test.rb"]
+  end
+end
+
 begin
   require "rubocop/rake_task"
 

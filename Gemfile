@@ -5,7 +5,7 @@ source "https://rubygems.org" do
   eval_gemfile "gemfiles/minitest.gemfile"
   eval_gemfile "gemfiles/dev_server.gemfile"
 
-  gem "interactor", "~> 3.1"
+  # gem "interactor", "~> 3.1"
   gem "activefunction"
 
   group :test, :development do
@@ -13,5 +13,8 @@ source "https://rubygems.org" do
     gem 'dotenv'
     gem 'pry'
     gem 'ruby-next'
+
+    gem 'aws-sdk-dynamodb'
+    gem 'aws-sdk-eventbridge' 
   end
 end
