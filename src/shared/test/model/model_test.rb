@@ -37,15 +37,19 @@ describe Shared::Model do
         end
       end
 
-      it "should raise an error if missing defined attr" do
-        assert_raises(described_class::BuildError) do
-          model.build(id: 1)
+      describe "when invalid attributes are given" do
+        it "should raise an error if missing defined attr" do
+          assert_raises(described_class::BuildError) do
+            model.build(id: 1)
+          end
         end
-      end
 
-      it "should raise an error if the given sub model is invalid" do
-        assert_raises(described_class::BuildError) do
-          model_with_sub_model.build(id: 1, name: "test", test: { unknown: "foo" })
+        describe "when invalid submodel lazily loaded" do
+          it "should raise an error if the given sub model is invalid" do
+            assert_raises(described_class::BuildError) do
+              model_with_sub_model.build(id: 1, name: "test", test: { unknown: "foo" }).test
+            end
+          end
         end
       end
     end

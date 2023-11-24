@@ -7,6 +7,7 @@ module Shared
     def self.define(*args, **sub_models)
       Class.new(super(*args, *sub_models.keys)).tap do |model|
         model.instance_variable_set(:@_sub_models, sub_models)
+
         model.include Mixin
       end
     end
@@ -15,6 +16,7 @@ module Shared
       def self.included(base)
         base.extend ClassMethods
         base.include InstanceMethods
+        base.define_lazy_sub_models_getters
       end
 
       module InstanceMethods
@@ -41,7 +43,7 @@ module Shared
 
           sliced_options.each_with_object({}) do |(key, value), hash|
             hash[key] = if (sub_model = sub_models[key])
-              sub_model.build(**value)
+              -> { sub_model.build(**value) }
             else
               value
             end
@@ -55,6 +57,14 @@ module Shared
           received      = Set[*options]
 
           raise BuildError, "Invalid keys received: #{(received - expected_keys).to_a.join(", ")}" unless received == expected_keys
+        end
+
+        def define_lazy_sub_models_getters
+          sub_models.keys.each do |name|
+            class_eval(<<-END, __FILE__, __LINE__ + 1)
+              def #{name} = super.call
+            END
+          end
         end
 
         def sub_models = instance_variable_get(:@_sub_models)
