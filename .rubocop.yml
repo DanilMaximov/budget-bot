@@ -10,9 +10,11 @@ AllCops:
   Exclude:
     - 'bin/*'
     - 'Gemfile'
+    - 'Rakefile'
     - 'gemfiles/**/*'
     - 'vendor/**/*'
     - '.bundle/**/*'
+    - 'infrastructure/**/*'
   DisplayCopNames: true
   SuggestExtensions: false
   TargetRubyVersion: 3.2.2
