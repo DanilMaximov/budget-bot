@@ -15,7 +15,10 @@ rescue LoadError
 end
 
 namespace :test do
-  task all: [ :shared, :gatekeeper]
+  Rake::TestTask.new(:all) do |t|
+    t.libs << "test"
+    t.test_files = FileList["#{__dir__}/src/**/test/**/*_test.rb"]
+  end
 
   Rake::TestTask.new(:gatekeeper) do |t|
     t.libs << "test"
