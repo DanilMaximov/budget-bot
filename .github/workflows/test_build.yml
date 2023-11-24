@@ -2,9 +2,9 @@ name: Ruby CI
 
 on:
   push:
-    branches: [ tmain ]
+    branches: [ master ]
   pull_request:
-    branches: [ tmain ]
+    branches: [ master ]
 
 jobs:
   test:
