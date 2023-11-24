@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
-require_relative "model"
-require_relative "plugins/ddb_item"
+require "./src/shared/model/model"
+require "./src/shared/model/plugins/dynamodb/item"
 
 class Account
-  Session = Model.define(:id, :internal_id, :account_id, :last_event_id, :status) do
+  Session = Shared::Model.define(:id, :internal_id, :account_id, :last_event_id, :status) do
     def self.table_name = "account_integrations"
 
     include Plugins::DynamoDB::Item

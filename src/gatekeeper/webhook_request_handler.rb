@@ -32,7 +32,7 @@ class WebHookRequestHandler
       request_payload = JSON.parse(event["body"], symbolize_names: true)
       update          = TelegramUpdate.build_from_webhook_request(request_payload)
 
-      session = authenticate!(update)
+      authenticate!(update)
 
       enqueue_default_update_event(update)
     rescue ResponseReady => e

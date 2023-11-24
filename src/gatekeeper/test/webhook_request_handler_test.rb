@@ -3,7 +3,7 @@
 require "test_helper"
 require_relative "support/requests_helper"
 
-require_relative "../handler"
+require_relative "../webhook_request_handler"
 require_relative "../models/account"
 
 describe WebHookRequestHandler do

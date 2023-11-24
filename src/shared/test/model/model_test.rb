@@ -1,12 +1,14 @@
 # frozen_string_literal: true
 
 require "test_helper"
-require_relative "../../models/model"
+require_relative "../../model/model"
 
-describe Model do
+describe Shared::Model do
+  let(:described_class) { Shared::Model }
+
   describe "::define" do
     it "should define a model with the given members" do
-      Model.define(:id, :name).tap do |model|
+      described_class.define(:id, :name).tap do |model|
         assert_equal %i[id name], model.members
         assert_includes model.ancestors, Data
       end
@@ -14,9 +16,9 @@ describe Model do
   end
 
   describe "Model.define(**)" do
-    let(:model) { Model.define(:id, :name) }
+    let(:model) { described_class.define(:id, :name) }
     let(:model_with_sub_model) do
-      Model.define(:id, :name, test: Model.define(:type))
+      described_class.define(:id, :name, test: described_class.define(:type))
     end
 
     describe "::build" do
@@ -36,13 +38,13 @@ describe Model do
       end
 
       it "should raise an error if missing defined attr" do
-        assert_raises(Model::BuildError) do
+        assert_raises(described_class::BuildError) do
           model.build(id: 1)
         end
       end
 
       it "should raise an error if the given sub model is invalid" do
-        assert_raises(Model::BuildError) do
+        assert_raises(described_class::BuildError) do
           model_with_sub_model.build(id: 1, name: "test", test: { unknown: "foo" })
         end
       end

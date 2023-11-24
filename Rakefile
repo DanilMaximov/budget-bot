@@ -22,10 +22,15 @@ namespace :test do
     t.verbose = true
   end
 
-  Rake::TestTask.new(:authorizer) do |t, args |
+  Rake::TestTask.new(:gatekeeper) do |t|
     t.libs << 'test'
-    t.test_files = FileList["#{__dir__}/src/authorizer/test/**/*_test.rb"]
+    t.test_files = FileList["#{__dir__}/src/gatekeeper/test/**/*_test.rb"]
     t.verbose = true
+  end
+
+  Rake::TestTask.new(:shared) do |t|
+    t.libs << 'test'
+    t.test_files = FileList["#{__dir__}/src/shared/test/**/*_test.rb"]
   end
 end
 

@@ -2,10 +2,12 @@
 
 require "test_helper"
 require "ostruct"
-require_relative "../../../models/plugins/ddb_item"
+
+require_relative "../../../model/plugins/dynamodb/item"
+
 
 describe Plugins::DynamoDB::Item do
-  let(:model) { Model.define(:name) { include Plugins::DynamoDB::Item } }
+  let(:model) { Shared::Model.define(:name) { include Plugins::DynamoDB::Item } }
   let(:stub_ddb_client) { Aws::DynamoDB::Client.new(stub_responses: true) }
   let(:table_name) { "test" }
 
@@ -24,23 +26,23 @@ describe Plugins::DynamoDB::Item do
     end
 
     describe "#where" do
-      let(:exppected_query) { "SELECT * FROM #{table_name}\nWHERE name = 'Pupa'\n" }
+      let(:exppected_query) { "SELECT * FROM #{table_name} WHERE name = 'Pupa'" }
 
       it "generates the expected WHERE clause string for a basic query" do
         model.where(name: "Pupa")
       end
 
       describe "with filters" do
-        let(:exppected_query) { "SELECT * FROM #{table_name}\nWHERE name = 'Pupa'\nORDER BY name DESC\n" }
+        let(:exppected_query) { "SELECT * FROM #{table_name} WHERE name = 'Pupa' ORDER BY name DESC" }
         let(:expected_params) { { limit: 1 } }
 
         it "generates the expected WHERE clause string for a basic query" do
-          model.where(name: "Pupa", order_by: [ :name, :desc ], limit: 1)
+          model.where(name: "Pupa", order_by: { name: :desc }, limit: 1)
         end
       end
 
       describe "with multiple conditions" do
-        let(:exppected_query) { "SELECT * FROM #{table_name}\nWHERE name = 'Pupa' AND age = 1\n" }
+        let(:exppected_query) { "SELECT * FROM #{table_name} WHERE name = 'Pupa' AND age = 1" }
 
         it "generates the expected WHERE clause string for a basic query" do
           model.where(name: "Pupa", age: 1)
@@ -49,7 +51,7 @@ describe Plugins::DynamoDB::Item do
     end
 
     describe "#find_by" do
-      let(:exppected_query) { "SELECT * FROM #{table_name}\nWHERE name = 'Pupa'\n" }
+      let(:exppected_query) { "SELECT * FROM #{table_name} WHERE name = 'Pupa'" }
       let(:expected_params) { { limit: 1 } }
 
       it "generates the expected WHERE clause string for a basic query" do
@@ -58,41 +60,41 @@ describe Plugins::DynamoDB::Item do
     end
 
     describe "#update" do
-      let(:exppected_query) { "UPDATE #{table_name}\nSET name = 'Pupa'\nALL NEW *" }
+      let(:exppected_query) { "UPDATE #{table_name} SET name = 'Pupa' ALL NEW *" }
 
       it "generates the expected SET clause string for a basic query" do
         model.update(name: "Pupa")
       end
 
       describe "with filters" do
-        let(:exppected_query) { "UPDATE #{table_name}\nSET name = 'Pupa'\nORDER BY name DESC\nALL NEW *" }
+        let(:exppected_query) { "UPDATE #{table_name} SET name = 'Pupa' ALL NEW *" }
         let(:expected_params) { { limit: 1 } }
 
         it "generates the expected SET clause string for a basic query" do
-          model.update(name: "Pupa", order_by: [ :name, :desc ], limit: 1)
+          model.update(name: "Pupa", limit: 1)
         end
       end
     end
 
     describe "#delete" do
-      let(:exppected_query) { "DELETE FROM #{table_name}\nWHERE name = 'Pupa'\n" }
+      let(:exppected_query) { "DELETE FROM #{table_name} WHERE name = 'Pupa' ALL OLD *" }
 
       it "generates the expected WHERE clause string for a basic query" do
         model.delete(name: "Pupa")
       end
 
       describe "with filters" do
-        let(:exppected_query) { "DELETE FROM #{table_name}\nWHERE name = 'Pupa'\nORDER BY name DESC\n" }
+        let(:exppected_query) { "DELETE FROM #{table_name} WHERE name = 'Pupa' ALL OLD *" }
         let(:expected_params) { { limit: 1 } }
 
         it "generates the expected WHERE clause string for a basic query" do
-          model.delete(name: "Pupa", order_by: [ :name, :desc ], limit: 1)
+          model.delete(name: "Pupa", limit: 1)
         end
       end
     end
 
     describe "#create" do
-      let(:exppected_query) { "INSERT INTO #{table_name}\nVALUES {name: 'Pupa'}\n" }
+      let(:exppected_query) { "INSERT INTO #{table_name} VALUES {name: 'Pupa'}" }
 
       it "generates the expected VALUES clause string for a basic query" do
         model.create(name: "Pupa")
