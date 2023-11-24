@@ -2,7 +2,7 @@
 
 module RequestsHelper
   module AwsRequest
-    @path = File.expand_path("../fixtures/aws_event.json", __dir__)
+    @path  = File.expand_path("../fixtures/aws_event.json", __dir__)
     @event = JSON.parse(File.read(@path))
 
     module_function

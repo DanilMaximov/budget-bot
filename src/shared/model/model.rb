@@ -1,8 +1,9 @@
 # frozen_string_literal: true
+
 module Shared
   class Model < Data
     BuildError = Class.new(StandardError)
-    
+
     def self.define(*args, **sub_models)
       Class.new(super(*args, *sub_models.keys)).tap do |model|
         model.instance_variable_set(:@_sub_models, sub_models)
@@ -39,7 +40,7 @@ module Shared
           validate!(sliced_options.keys)
 
           sliced_options.each_with_object({}) do |(key, value), hash|
-            hash[key] = if sub_model = sub_models[key]
+            hash[key] = if (sub_model = sub_models[key])
               sub_model.build(**value)
             else
               value

@@ -5,7 +5,6 @@ require "ostruct"
 
 require_relative "../../../model/plugins/dynamodb/item"
 
-
 describe Plugins::DynamoDB::Item do
   let(:model) { Shared::Model.define(:name) { include Plugins::DynamoDB::Item } }
   let(:stub_ddb_client) { Aws::DynamoDB::Client.new(stub_responses: true) }

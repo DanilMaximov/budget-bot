@@ -12,6 +12,7 @@ AllCops:
     - 'Gemfile'
     - 'gemfiles/**/*'
     - 'vendor/**/*'
+    - '.bundle/**/*'
   DisplayCopNames: true
   SuggestExtensions: false
   TargetRubyVersion: 3.2.2

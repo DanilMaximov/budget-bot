@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Types
   # class Enum < Data
   #   alias_method :to_a, :members
@@ -11,7 +13,6 @@ module Types
   #     freeze
   #   end
   # end
-
 
   # module Event
   #   module Chat

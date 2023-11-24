@@ -15,25 +15,24 @@ rescue LoadError
 end
 
 namespace :test do
-  desc 'Run all tests'
+  desc "Run all tests"
   Rake::TestTask.new(:all) do |t|
-    t.libs << 'test'
-    t.test_files = FileList['src/**/test/*_test.rb']
-    t.verbose = true
+    t.libs << "test"
+    t.test_files = FileList["src/**/test/*_test.rb"]
+    t.verbose    = true
   end
 
   Rake::TestTask.new(:gatekeeper) do |t|
-    t.libs << 'test'
+    t.libs << "test"
     t.test_files = FileList["#{__dir__}/src/gatekeeper/test/**/*_test.rb"]
-    t.verbose = true
+    t.verbose    = true
   end
 
   Rake::TestTask.new(:shared) do |t|
-    t.libs << 'test'
+    t.libs << "test"
     t.test_files = FileList["#{__dir__}/src/shared/test/**/*_test.rb"]
   end
 end
-
 
 begin
   require "rubocop/rake_task"

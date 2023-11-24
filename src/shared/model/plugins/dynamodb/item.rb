@@ -64,7 +64,7 @@ module Plugins
 
         def delete(**options)
           filters = options.slice(:order_by)
-          params = options.slice(:limit)
+          params  = options.slice(:limit)
           values  = options.except(*(filters.keys + params.keys))
 
           execute_expression(:delete, params:, where: values, **filters)
@@ -90,14 +90,6 @@ module Plugins
 
         def logger
           @_logger ||= (defined?(::LOGGER) && ::LOGGER) || ::Logger.new($stdout)
-        end
-
-        def build_from_dynamodb_item(items)
-          return nil if items.empty?
-
-          items.map do |item|
-            build(**item.transform_keys(&:to_sym))
-          end
         end
       end
     end

@@ -40,7 +40,7 @@ class WebHookRequestHandler
     rescue => e
       logger.error(e.full_message)
     ensure
-      return response(update)
+      return response(update) # rubocop:disable Lint/EnsureReturn
     end
 
     private
