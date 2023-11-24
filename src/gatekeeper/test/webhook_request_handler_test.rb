@@ -8,6 +8,7 @@ require_relative "../models/account"
 
 describe WebHookRequestHandler do
   let(:described_class) { WebHookRequestHandler }
+  let(:stub_ddb_client) { Aws::DynamoDB::Client.new(stub_responses: true) }
 
   let(:request) { webhook_request.text }
   let(:webhook_event_body) { request.to_json }
@@ -18,14 +19,20 @@ describe WebHookRequestHandler do
   let(:account_session) { Account::Session.new(id: 1, internal_id: 1, account_id: 1, last_event_id: 1, status: :free) }
   let(:ddb_response) { { items: [ account_session.to_h.transform_keys(&:to_s) ] } }
 
+  def stub_DDB # la kostyl'
+    return ::DDB if ::DDB.equal?(stub_ddb_client)
+
+    Object.send(:remove_const, :DDB)
+    Object.const_set(:DDB, stub_ddb_client)
+  end
+
   before do
-    dynamodb = Aws::DynamoDB::Client.new(stub_responses: true)
-    dynamodb.stub_responses(:execute_statement, ddb_response)
+    stub_ddb_client.stub_responses(:execute_statement, ddb_response)
 
     time = Time.now
     Time.stubs(:now).returns(time)
 
-    ::DDB = dynamodb # stub :////
+    stub_DDB
   end
 
   describe "::handle" do
